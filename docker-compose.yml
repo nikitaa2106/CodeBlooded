@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: shecare-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - shecare-mongo-data:/data/db
+    networks:
+      - shecare-network
+
+  # SheCare Backend API
+  backend:
+    build: ./backend
+    container_name: shecare-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/shecare
+      - JWT_SECRET=shecare_jwt_secret_key_change_in_production
+      - JWT_EXPIRES_IN=7d
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    networks:
+      - shecare-network
+
+volumes:
+  shecare-mongo-data:
+    driver: local
+
+networks:
+  shecare-network:
+    driver: bridge
